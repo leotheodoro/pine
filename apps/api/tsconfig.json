@@ -1,0 +1,18 @@
+{
+  "extends": "@pine/typescript-config/node.json",
+  "include": [
+    "src/**/*",
+    "@types/*.d.ts",
+    "prisma/**/*"
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "jsx": "react",
+    "esModuleInterop": true
+  }
+}

@@ -1,0 +1,30 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String  @id @default(uuid())
+  name          String
+  email         String  @unique
+  username      String  @unique
+  password_hash String
+  avatar_url    String?
+
+  created_at DateTime @default(now())
+
+  bitbucket_email     String?
+  bitbucket_api_token String?
+  bitbucket_workspace String?
+
+  azure_devops_org     String?
+  azure_devops_pat     String?
+  azure_devops_project String?
+
+  @@map("users")
+}

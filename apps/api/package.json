@@ -1,0 +1,99 @@
+{
+  "name": "@pine/api",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "npm run env:load tsx watch src/http/server.ts",
+    "start": "node dist/http/server.js",
+    "build": "tsup",
+    "env:load": "dotenv -e ../../.env --",
+    "db:migrate": "npm run env:load npx prisma migrate dev",
+    "db:deploy": "npm run env:load npx prisma migrate deploy",
+    "db:studio": "npm run env:load npx prisma studio",
+    "db:seed": "npm run env:load npx prisma db seed",
+    "test": "vitest run --project unit",
+    "test:watch": "vitest run --project unit",
+    "test:e2e": "npm run env:load -- vitest run --project e2e",
+    "test:e2e:watch": "npm run env:load -- vitest run --project e2e",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.0.1",
+    "@fastify/jwt": "^9.1.0",
+    "@fastify/swagger": "^9.5.0",
+    "@fastify/swagger-ui": "^5.2.2",
+    "@prisma/client": "^6.6.0",
+    "@react-email/components": "^0.5.7",
+    "@react-email/render": "^1.4.0",
+    "@pine/env": "workspace:*",
+    "axios": "^1.9.0",
+    "bcryptjs": "^3.0.2",
+    "date-fns": "^3.6.0",
+    "date-fns-tz": "^3.0.0",
+    "fastify": "^5.3.0",
+    "fastify-plugin": "^5.0.1",
+    "fastify-type-provider-zod": "^4.0.2",
+    "pdf-parse": "^1.1.1",
+    "react": "^19.0.0",
+    "resend": "^6.3.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.7.0",
+    "@pine/eslint-config": "workspace:*",
+    "@pine/prettier-config": "workspace:*",
+    "@pine/typescript-config": "workspace:*",
+    "@types/node": "^22.14.1",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/react": "^19",
+    "@types/supertest": "^6.0.3",
+    "@vitest/coverage-v8": "3.1.2",
+    "@vitest/ui": "^3.1.2",
+    "dotenv": "^16.5.0",
+    "dotenv-cli": "^8.0.0",
+    "prisma": "^6.6.0",
+    "supertest": "^7.1.0",
+    "tsup": "^8.4.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.4",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.1.2"
+  },
+  "prettier": "@pine/prettier-config",
+  "eslintConfig": {
+    "extends": [
+      "@pine/eslint-config/node"
+    ],
+    "rules": {
+      "no-useless-constructor": "off",
+      "camelcase": "off",
+      "newline-per-chained-call": "off",
+      "prettier/prettier": [
+        "error",
+        {
+          "printWidth": 120,
+          "tabWidth": 2,
+          "useTabs": false,
+          "semi": false,
+          "singleQuote": true,
+          "quoteProps": "as-needed",
+          "jsxSingleQuote": false,
+          "trailingComma": "es5",
+          "bracketSpacing": true,
+          "arrowParens": "always",
+          "endOfLine": "auto",
+          "bracketSameLine": false
+        },
+        {
+          "usePrettierrc": false
+        }
+      ]
+    }
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}

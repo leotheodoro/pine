@@ -1,0 +1,19 @@
+{
+  "extends": "@pine/typescript-config/nextjs.json",
+  "include": [
+    "@types/*.d.ts",
+    "src/**/*",
+    ".next/types/**/*.ts"
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

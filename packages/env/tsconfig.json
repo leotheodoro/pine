@@ -1,0 +1,6 @@
+{
+  "extends": "@pine/typescript-config/library.json",
+  "include": [
+    "index.ts"
+  ]
+}
