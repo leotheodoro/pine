@@ -15,7 +15,6 @@ export class ListAzurePullRequestsService {
     userId,
     project,
     repoId,
-    top = 100,
   }: ListAzurePullRequestsServiceRequest): Promise<ListAzurePullRequestsServiceResponse> {
     const user = await this.usersRepository.findById(userId)
 
@@ -34,7 +33,7 @@ export class ListAzurePullRequestsService {
       {
         params: {
           'searchCriteria.status': 'active',
-          $top: top,
+          $top: 100,
           'api-version': '7.1',
         },
       }

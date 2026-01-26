@@ -47,7 +47,6 @@ export interface ListAzurePullRequestsServiceRequest {
   userId: string
   project: string
   repoId: string
-  top?: number
 }
 
 export interface ListAzurePullRequestsServiceResponse {
@@ -63,7 +62,6 @@ export interface ListAllPullRequestsServiceRequest {
   azure?: {
     project: string
     repoId: string
-    top?: number
   }
 }
 

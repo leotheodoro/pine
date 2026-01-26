@@ -39,7 +39,6 @@ export class ListAllPullRequestsService {
           userId,
           project: azure.project,
           repoId: azure.repoId,
-          top: azure.top,
         })
         pullRequests.push(...result.pullRequests)
         sources.azure = true

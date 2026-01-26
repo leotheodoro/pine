@@ -9,11 +9,11 @@ export async function listAllPullRequestsController(request: FastifyRequest, rep
     bitbucketRepoSlug: z.string().optional(),
     azureProject: z.string().optional(),
     azureRepoId: z.string().optional(),
-    azureTop: z.coerce.number().max(200).optional(),
   })
 
-  const { bitbucketWorkspace, bitbucketRepoSlug, azureProject, azureRepoId, azureTop } =
-    listAllPullRequestsQuerySchema.parse(request.query)
+  const { bitbucketWorkspace, bitbucketRepoSlug, azureProject, azureRepoId } = listAllPullRequestsQuerySchema.parse(
+    request.query
+  )
 
   if (!bitbucketRepoSlug && !azureProject) {
     return reply.status(400).send({
@@ -51,7 +51,6 @@ export async function listAllPullRequestsController(request: FastifyRequest, rep
           azure: {
             project: azureProject,
             repoId: azureRepoId,
-            top: azureTop,
           },
         }),
     })
