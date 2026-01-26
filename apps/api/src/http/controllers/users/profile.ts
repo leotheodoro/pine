@@ -13,6 +13,12 @@ export async function profileController(request: FastifyRequest, reply: FastifyR
       email: true,
       username: true,
       avatar_url: true,
+      bitbucket_email: true,
+      bitbucket_api_token: true,
+      bitbucket_workspace: true,
+      azure_devops_org: true,
+      azure_devops_pat: true,
+      azure_devops_project: true,
     },
     where: { id: userId },
   })
