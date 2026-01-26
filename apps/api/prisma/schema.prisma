@@ -26,5 +26,18 @@ model User {
   azure_devops_pat     String?
   azure_devops_project String?
 
+  repositories Repository[]
+
   @@map("users")
+}
+
+model Repository {
+  id         String   @id @default(uuid())
+  provider   String
+  identifier String
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  created_at DateTime @default(now())
+
+  @@map("repositories")
 }

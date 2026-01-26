@@ -33,44 +33,24 @@ export interface PullRequest {
   }
 }
 
-export interface ListBitbucketPullRequestsServiceRequest {
-  userId: string
-  repoSlug: string
-}
-
-export interface ListBitbucketPullRequestsServiceResponse {
-  pullRequests: PullRequest[]
-}
-
-export interface ListAzurePullRequestsServiceRequest {
-  userId: string
-  repoId: string
-}
-
-export interface ListAzurePullRequestsServiceResponse {
-  pullRequests: PullRequest[]
-}
-
 export interface ListAllPullRequestsServiceRequest {
   userId: string
-  bitbucket?: {
-    repoSlug: string
-  }
-  azure?: {
-    repoId: string
-  }
 }
 
 export interface ListAllPullRequestsServiceResponse {
   pullRequests: PullRequest[]
-  sources: {
-    bitbucket: boolean
-    azure: boolean
+  summary: {
+    total: number
+    byProvider: {
+      bitbucket: number
+      azure: number
+    }
   }
-  errors?: {
-    bitbucket?: string
-    azure?: string
-  }
+  errors?: Array<{
+    repository: string
+    provider: string
+    error: string
+  }>
 }
 
 export interface BitbucketRawPullRequest {
