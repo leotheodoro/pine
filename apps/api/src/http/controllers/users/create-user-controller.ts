@@ -10,9 +10,10 @@ export async function createUserController(request: FastifyRequest, reply: Fasti
     email: z.string().email(),
     password: z.string().min(3),
     username: z.string(),
+    avatar_url: z.string().optional(),
   })
 
-  const { name, email, password, username } = createUserBodySchema.parse(request.body)
+  const { name, email, password, username, avatar_url } = createUserBodySchema.parse(request.body)
 
   try {
     const createUserService = makeCreateUserService()
@@ -22,6 +23,7 @@ export async function createUserController(request: FastifyRequest, reply: Fasti
       email,
       password,
       username,
+      avatar_url,
     })
 
     return reply.status(201).send(user)
