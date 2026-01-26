@@ -19,6 +19,14 @@ export async function updateUserController(request: FastifyRequest, reply: Fasti
     azure_devops_org: z.string().optional(),
     azure_devops_pat: z.string().optional(),
     azure_devops_project: z.string().optional(),
+    repositories: z
+      .array(
+        z.object({
+          provider: z.enum(['bitbucket', 'azure']),
+          identifier: z.string(),
+        })
+      )
+      .optional(),
   })
 
   const {
@@ -33,6 +41,7 @@ export async function updateUserController(request: FastifyRequest, reply: Fasti
     azure_devops_org,
     azure_devops_pat,
     azure_devops_project,
+    repositories,
   } = updateUserBodySchema.parse(request.body)
 
   try {
@@ -51,6 +60,7 @@ export async function updateUserController(request: FastifyRequest, reply: Fasti
       azure_devops_org,
       azure_devops_pat,
       azure_devops_project,
+      repositories,
     })
 
     return reply.status(201).send(user)

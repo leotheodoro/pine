@@ -19,6 +19,7 @@ export async function profileController(request: FastifyRequest, reply: FastifyR
       azure_devops_org: true,
       azure_devops_pat: true,
       azure_devops_project: true,
+      repositories: true,
     },
     where: { id: userId },
   })

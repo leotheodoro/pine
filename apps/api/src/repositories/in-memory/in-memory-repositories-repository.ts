@@ -29,4 +29,20 @@ export class InMemoryRepositoriesRepository implements RepositoriesRepository {
       this.items.splice(index, 1)
     }
   }
+
+  async deleteManyByUserId(userId: string): Promise<void> {
+    this.items = this.items.filter((item) => item.user_id !== userId)
+  }
+
+  async createMany(data: Prisma.RepositoryUncheckedCreateInput[]): Promise<void> {
+    const repositories = data.map((item) => ({
+      id: randomUUID(),
+      provider: item.provider,
+      identifier: item.identifier,
+      user_id: item.user_id,
+      created_at: new Date(),
+    }))
+
+    this.items.push(...repositories)
+  }
 }

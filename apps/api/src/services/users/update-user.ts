@@ -1,6 +1,7 @@
 import { hash } from 'bcryptjs'
 import { User } from 'generated'
 
+import { RepositoriesRepository } from '@/repositories/repositories-repository'
 import { UsersRepository } from '@/repositories/users-repository'
 
 import { UserAlreadyExistsError } from '../_errors/user-already-exists-error'
@@ -19,6 +20,10 @@ interface UpdateUserServiceRequest {
   azure_devops_org?: string
   azure_devops_pat?: string
   azure_devops_project?: string
+  repositories?: Array<{
+    provider: string
+    identifier: string
+  }>
 }
 
 interface UpdateUserServiceResponse {
@@ -26,7 +31,10 @@ interface UpdateUserServiceResponse {
 }
 
 export class UpdateUserService {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(
+    private usersRepository: UsersRepository,
+    private repositoriesRepository: RepositoriesRepository
+  ) {}
 
   async execute({
     id,
@@ -41,6 +49,7 @@ export class UpdateUserService {
     azure_devops_org,
     azure_devops_pat,
     azure_devops_project,
+    repositories,
   }: UpdateUserServiceRequest): Promise<UpdateUserServiceResponse> {
     const user = await this.usersRepository.findById(id)
 
@@ -72,6 +81,20 @@ export class UpdateUserService {
       azure_devops_pat,
       azure_devops_project,
     })
+
+    if (repositories) {
+      await this.repositoriesRepository.deleteManyByUserId(id)
+
+      if (repositories.length > 0) {
+        await this.repositoriesRepository.createMany(
+          repositories.map((repo) => ({
+            provider: repo.provider,
+            identifier: repo.identifier,
+            user_id: id,
+          }))
+        )
+      }
+    }
 
     return { user: updatedUser }
   }

@@ -24,4 +24,18 @@ export class PrismaRepositoriesRepository implements RepositoriesRepository {
       },
     })
   }
+
+  async deleteManyByUserId(userId: string): Promise<void> {
+    await prisma.repository.deleteMany({
+      where: {
+        user_id: userId,
+      },
+    })
+  }
+
+  async createMany(data: Prisma.RepositoryUncheckedCreateInput[]): Promise<void> {
+    await prisma.repository.createMany({
+      data,
+    })
+  }
 }
