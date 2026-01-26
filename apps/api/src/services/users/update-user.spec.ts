@@ -28,9 +28,11 @@ describe('Update User Service', () => {
       email: user.email,
       name: 'Updated User',
       username: user.username,
+      bitbucket_api_token: '123456',
     })
 
     expect(updatedUser.id).toEqual(user.id)
+    expect(updatedUser.bitbucket_api_token).toEqual('123456')
     expect(updatedUser.name).toEqual('Updated User')
   })
 
