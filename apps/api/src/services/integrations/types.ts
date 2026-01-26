@@ -35,7 +35,6 @@ export interface PullRequest {
 
 export interface ListBitbucketPullRequestsServiceRequest {
   userId: string
-  workspace?: string
   repoSlug: string
 }
 
@@ -56,7 +55,6 @@ export interface ListAzurePullRequestsServiceResponse {
 export interface ListAllPullRequestsServiceRequest {
   userId: string
   bitbucket?: {
-    workspace?: string
     repoSlug: string
   }
   azure?: {

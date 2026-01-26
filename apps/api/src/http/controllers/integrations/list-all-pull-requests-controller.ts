@@ -5,15 +5,12 @@ import { makeListAllPullRequestsService } from '../../../services/_factories/int
 
 export async function listAllPullRequestsController(request: FastifyRequest, reply: FastifyReply) {
   const listAllPullRequestsQuerySchema = z.object({
-    bitbucketWorkspace: z.string().optional(),
     bitbucketRepoSlug: z.string().optional(),
     azureProject: z.string().optional(),
     azureRepoId: z.string().optional(),
   })
 
-  const { bitbucketWorkspace, bitbucketRepoSlug, azureProject, azureRepoId } = listAllPullRequestsQuerySchema.parse(
-    request.query
-  )
+  const { bitbucketRepoSlug, azureProject, azureRepoId } = listAllPullRequestsQuerySchema.parse(request.query)
 
   if (!bitbucketRepoSlug && !azureProject) {
     return reply.status(400).send({
@@ -42,7 +39,6 @@ export async function listAllPullRequestsController(request: FastifyRequest, rep
       userId,
       ...(bitbucketRepoSlug && {
         bitbucket: {
-          workspace: bitbucketWorkspace,
           repoSlug: bitbucketRepoSlug,
         },
       }),

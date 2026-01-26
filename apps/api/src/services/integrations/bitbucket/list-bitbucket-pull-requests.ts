@@ -13,7 +13,6 @@ export class ListBitbucketPullRequestsService {
 
   async execute({
     userId,
-    workspace,
     repoSlug,
   }: ListBitbucketPullRequestsServiceRequest): Promise<ListBitbucketPullRequestsServiceResponse> {
     const user = await this.usersRepository.findById(userId)
@@ -22,19 +21,13 @@ export class ListBitbucketPullRequestsService {
       throw new Error('User not found')
     }
 
-    if (!user.bitbucket_email || !user.bitbucket_api_token) {
+    if (!user.bitbucket_email || !user.bitbucket_api_token || !user.bitbucket_workspace) {
       throw new IntegrationCredentialsMissingError('Bitbucket')
-    }
-
-    const workspaceToUse = workspace || user.bitbucket_workspace
-
-    if (!workspaceToUse) {
-      throw new IntegrationCredentialsMissingError('Bitbucket workspace')
     }
 
     const client = createBitbucketClient(user.bitbucket_email, user.bitbucket_api_token)
 
-    const response = await client.get(`/repositories/${workspaceToUse}/${repoSlug}/pullrequests`, {
+    const response = await client.get(`/repositories/${user.bitbucket_workspace}/${repoSlug}/pullrequests`, {
       params: {
         state: 'OPEN',
         pagelen: 50,

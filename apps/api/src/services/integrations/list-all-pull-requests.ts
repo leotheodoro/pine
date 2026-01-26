@@ -23,7 +23,6 @@ export class ListAllPullRequestsService {
       try {
         const result = await this.listBitbucketPullRequestsService.execute({
           userId,
-          workspace: bitbucket.workspace,
           repoSlug: bitbucket.repoSlug,
         })
         pullRequests.push(...result.pullRequests)
