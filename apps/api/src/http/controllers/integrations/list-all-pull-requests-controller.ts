@@ -6,27 +6,14 @@ import { makeListAllPullRequestsService } from '../../../services/_factories/int
 export async function listAllPullRequestsController(request: FastifyRequest, reply: FastifyReply) {
   const listAllPullRequestsQuerySchema = z.object({
     bitbucketRepoSlug: z.string().optional(),
-    azureProject: z.string().optional(),
     azureRepoId: z.string().optional(),
   })
 
-  const { bitbucketRepoSlug, azureProject, azureRepoId } = listAllPullRequestsQuerySchema.parse(request.query)
+  const { bitbucketRepoSlug, azureRepoId } = listAllPullRequestsQuerySchema.parse(request.query)
 
-  if (!bitbucketRepoSlug && !azureProject) {
+  if (!bitbucketRepoSlug && !azureRepoId) {
     return reply.status(400).send({
-      message: 'At least one integration must be specified (Bitbucket or Azure DevOps)',
-    })
-  }
-
-  if (bitbucketRepoSlug && !azureProject && !azureRepoId) {
-    // Bitbucket only
-  } else if (!bitbucketRepoSlug && azureProject && azureRepoId) {
-    // Azure only
-  } else if (bitbucketRepoSlug && azureProject && azureRepoId) {
-    // Both
-  } else {
-    return reply.status(400).send({
-      message: 'Invalid parameter combination. Provide complete information for each integration.',
+      message: 'At least one integration must be specified (bitbucketRepoSlug or azureRepoId)',
     })
   }
 
@@ -42,13 +29,11 @@ export async function listAllPullRequestsController(request: FastifyRequest, rep
           repoSlug: bitbucketRepoSlug,
         },
       }),
-      ...(azureProject &&
-        azureRepoId && {
-          azure: {
-            project: azureProject,
-            repoId: azureRepoId,
-          },
-        }),
+      ...(azureRepoId && {
+        azure: {
+          repoId: azureRepoId,
+        },
+      }),
     })
 
     return reply.status(200).send({

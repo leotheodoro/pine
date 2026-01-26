@@ -44,7 +44,6 @@ export interface ListBitbucketPullRequestsServiceResponse {
 
 export interface ListAzurePullRequestsServiceRequest {
   userId: string
-  project: string
   repoId: string
 }
 
@@ -58,7 +57,6 @@ export interface ListAllPullRequestsServiceRequest {
     repoSlug: string
   }
   azure?: {
-    project: string
     repoId: string
   }
 }

@@ -11,25 +11,21 @@ import {
 export class ListAzurePullRequestsService {
   constructor(private usersRepository: UsersRepository) {}
 
-  async execute({
-    userId,
-    project,
-    repoId,
-  }: ListAzurePullRequestsServiceRequest): Promise<ListAzurePullRequestsServiceResponse> {
+  async execute({ userId, repoId }: ListAzurePullRequestsServiceRequest): Promise<ListAzurePullRequestsServiceResponse> {
     const user = await this.usersRepository.findById(userId)
 
     if (!user) {
       throw new Error('User not found')
     }
 
-    if (!user.azure_devops_org || !user.azure_devops_pat) {
+    if (!user.azure_devops_org || !user.azure_devops_pat || !user.azure_devops_project) {
       throw new IntegrationCredentialsMissingError('Azure DevOps')
     }
 
     const client = createAzureDevOpsClient(user.azure_devops_org, user.azure_devops_pat)
 
     const response = await client.get(
-      `/${encodeURIComponent(project)}/_apis/git/repositories/${encodeURIComponent(repoId)}/pullrequests`,
+      `/${encodeURIComponent(user.azure_devops_project)}/_apis/git/repositories/${encodeURIComponent(repoId)}/pullrequests`,
       {
         params: {
           'searchCriteria.status': 'active',

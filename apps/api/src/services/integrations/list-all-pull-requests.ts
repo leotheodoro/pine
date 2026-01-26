@@ -36,7 +36,6 @@ export class ListAllPullRequestsService {
       try {
         const result = await this.listAzurePullRequestsService.execute({
           userId,
-          project: azure.project,
           repoId: azure.repoId,
         })
         pullRequests.push(...result.pullRequests)
