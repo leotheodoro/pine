@@ -1,3 +1,4 @@
+import { hash } from 'bcryptjs'
 import { User } from 'generated'
 
 import { UsersRepository } from '@/repositories/users-repository'
@@ -9,7 +10,7 @@ interface UpdateUserServiceRequest {
   id: string
   name?: string
   email: string
-  password_hash?: string
+  password?: string
   username: string
   avatar_url?: string
   bitbucket_email?: string
@@ -31,7 +32,7 @@ export class UpdateUserService {
     id,
     name,
     email,
-    password_hash,
+    password,
     username,
     avatar_url,
     bitbucket_email,
@@ -53,10 +54,15 @@ export class UpdateUserService {
       throw new UserAlreadyExistsError()
     }
 
+    let passwordHash = user.password_hash
+    if (password) {
+      passwordHash = await hash(password, 6)
+    }
+
     const updatedUser = await this.usersRepository.update(id, {
       name,
       email,
-      password_hash,
+      password_hash: passwordHash,
       username,
       avatar_url,
       bitbucket_email,

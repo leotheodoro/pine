@@ -2,7 +2,6 @@ import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { app } from '@/http/app'
-import { createAndAuthenticateUser } from '@/utils/test/create-and-authenticate-user'
 
 describe('Create User (e2e)', () => {
   beforeAll(async () => {
@@ -14,9 +13,7 @@ describe('Create User (e2e)', () => {
   })
 
   it('should be able to register', async () => {
-    const { token } = await createAndAuthenticateUser(app)
-
-    const response = await request(app.server).post('/users').set('Authorization', `Bearer ${token}`).send({
+    const response = await request(app.server).post('/users').send({
       name: 'John Doe',
       email: 'johndoe@example.com',
       username: 'johndoe',
