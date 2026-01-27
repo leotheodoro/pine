@@ -1,6 +1,6 @@
 'use client'
 
-import { IconDashboard, IconInnerShadowTop, IconSettings } from '@tabler/icons-react'
+import { IconDashboard, IconSettings } from '@tabler/icons-react'
 import * as React from 'react'
 
 import { NavMain } from '@/components/nav-main'
@@ -17,11 +17,13 @@ import {
 } from '@/components/ui/sidebar'
 import { useProfile } from '@/hooks/use-profile'
 
+import { PineIcon } from './pine-icon'
+
 const data = {
   navMain: [
     {
       title: 'Dashboard',
-      url: '#',
+      url: '/dashboard',
       icon: IconDashboard,
     },
   ],
@@ -49,8 +51,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
+              <a href="/dashboard">
+                <PineIcon className="!size-5" />
                 <span className="text-base font-semibold">Pine</span>
               </a>
             </SidebarMenuButton>
