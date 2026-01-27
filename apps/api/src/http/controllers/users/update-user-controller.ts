@@ -10,8 +10,8 @@ export async function updateUserController(request: FastifyRequest, reply: Fasti
   const updateUserBodySchema = z.object({
     name: z.string(),
     email: z.string().email(),
-    password: z.string().min(3),
-    username: z.string(),
+    password: z.string().min(3).optional(),
+    username: z.string().optional(),
     avatar_url: z.string().optional(),
     bitbucket_email: z.string().optional(),
     bitbucket_api_token: z.string().optional(),
