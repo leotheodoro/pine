@@ -21,10 +21,16 @@ export function PullRequestList() {
     data?.pullRequests.filter((pr) => {
       if (!profile?.user) return false
 
+      if (pr.author.email === profile.user.email || pr.author.email === profile.user.bitbucket_email) {
+        return false
+      }
+
       // Azure DevOps uses email (uniqueName)
       if (pr.provider === 'azure') {
         return pr.reviewers.some(
-          (reviewer) => reviewer.email === profile.user.email || reviewer.email === profile.user.bitbucket_email // Fallback if they share email
+          (reviewer) =>
+            (reviewer.email === profile.user.email || reviewer.email === profile.user.bitbucket_email) &&
+            reviewer.status !== 'approved' // Fallback if they share email
         )
       }
 
@@ -35,7 +41,8 @@ export function PullRequestList() {
           // If we have an email match, great
           if (
             reviewer.email &&
-            (reviewer.email === profile.user.email || reviewer.email === profile.user.bitbucket_email)
+            (reviewer.email === profile.user.email || reviewer.email === profile.user.bitbucket_email) &&
+            reviewer.status !== 'approved'
           ) {
             return true
           }
