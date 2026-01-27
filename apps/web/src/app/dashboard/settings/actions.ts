@@ -15,10 +15,38 @@ const updateProfileSchema = z.object({
   azure_devops_org: z.string().optional(),
   azure_devops_pat: z.string().optional(),
   azure_devops_project: z.string().optional(),
+  repositories: z
+    .array(
+      z.object({
+        provider: z.enum(['bitbucket', 'azure']),
+        identifier: z.string(),
+      })
+    )
+    .optional(),
 })
 
 export async function updateProfileAction(data: FormData) {
-  const result = updateProfileSchema.safeParse(Object.fromEntries(data))
+  const jsonData = Object.fromEntries(data)
+  const repositories: { provider: 'bitbucket' | 'azure'; identifier: string }[] = []
+
+  for (const [key, value] of data.entries()) {
+    const match = key.match(/repositories\[(\d+)\]\[(\w+)\]/)
+    if (match) {
+      const index = Number(match[1])
+      const field = match[2] as 'provider' | 'identifier'
+
+      if (!repositories[index]) {
+        repositories[index] = {} as { provider: 'bitbucket' | 'azure'; identifier: string }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      repositories[index][field] = value as any
+    }
+  }
+
+  const result = updateProfileSchema.safeParse({
+    ...jsonData,
+    repositories: repositories.filter((repo) => repo.provider && repo.identifier), // Filter out empty or incomplete ones if any
+  })
 
   if (!result.success) {
     const errors = result.error.flatten().fieldErrors

@@ -1,8 +1,8 @@
 'use client'
 
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { updateProfileAction } from '@/app/dashboard/settings/actions'
@@ -11,8 +11,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useFormState } from '@/hooks/use-form-state'
 import { useProfile } from '@/hooks/use-profile'
+
+interface Repository {
+  provider: 'bitbucket' | 'azure'
+  identifier: string
+}
 
 interface UserProfile {
   name: string
@@ -23,18 +29,18 @@ interface UserProfile {
   azure_devops_org?: string
   azure_devops_pat?: string
   azure_devops_project?: string
+  repositories?: Repository[]
 }
 
 export function SettingsForm() {
   const { data: profile, isLoading } = useProfile()
   const router = useRouter()
+  const [repositories, setRepositories] = useState<Repository[]>([])
 
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(updateProfileAction, () => {
     toast.success('Settings updated successfully')
     router.refresh()
   })
-
-  console.log(message)
 
   useEffect(() => {
     if (success === false && message) {
@@ -42,11 +48,34 @@ export function SettingsForm() {
     }
   }, [success, message])
 
+  useEffect(() => {
+    if (profile?.user) {
+      const user = profile.user as unknown as UserProfile
+      if (user.repositories) {
+        setRepositories(user.repositories)
+      }
+    }
+  }, [profile])
+
   if (isLoading) {
     return <div>Loading...</div>
   }
 
   const user = profile?.user as unknown as UserProfile
+
+  const handleAddRepository = () => {
+    setRepositories([...repositories, { provider: 'bitbucket', identifier: '' }])
+  }
+
+  const handleRemoveRepository = (index: number) => {
+    setRepositories(repositories.filter((_, i) => i !== index))
+  }
+
+  const handleRepositoryChange = (index: number, field: keyof Repository, value: string) => {
+    const newRepositories = [...repositories]
+    newRepositories[index] = { ...newRepositories[index], [field]: value }
+    setRepositories(newRepositories)
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -58,6 +87,13 @@ export function SettingsForm() {
           </AlertDescription>
         </Alert>
       )}
+
+      {repositories.map((repo, index) => (
+        <div key={index} className="hidden">
+          <input name={`repositories[${index}][provider]`} value={repo.provider} readOnly />
+          <input name={`repositories[${index}][identifier]`} value={repo.identifier} readOnly />
+        </div>
+      ))}
 
       <Card>
         <CardHeader>
@@ -173,6 +209,48 @@ export function SettingsForm() {
               <p className="text-xs font-medium text-red-500 dark:text-red-400">{errors.azure_devops_project[0]}</p>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Repositories</CardTitle>
+          <CardDescription>Manage your repositories.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {repositories.map((repo, index) => (
+            <div key={index} className="flex items-end gap-2">
+              <div className="grid gap-2 flex-1 min-w-0">
+                <Label>Provider</Label>
+                <Select
+                  value={repo.provider}
+                  onValueChange={(value) => handleRepositoryChange(index, 'provider', value as 'bitbucket' | 'azure')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bitbucket">Bitbucket</SelectItem>
+                    <SelectItem value="azure">Azure DevOps</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2 flex-1 min-w-0">
+                <Label>Identifier (Slug/Name)</Label>
+                <Input
+                  value={repo.identifier}
+                  onChange={(e) => handleRepositoryChange(index, 'identifier', e.target.value)}
+                  placeholder="e.g. project/repo"
+                />
+              </div>
+              <Button type="button" variant="destructive" size="icon" onClick={() => handleRemoveRepository(index)}>
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          ))}
+          <Button type="button" variant="outline" onClick={handleAddRepository} className="w-full">
+            <Plus className="mr-2 size-4" /> Add Repository
+          </Button>
         </CardContent>
       </Card>
 
