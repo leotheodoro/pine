@@ -34,7 +34,7 @@ export function SignUpForm() {
   })
 
   return (
-    <div className="from-primary/10 to-primary/5 flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="from-primary/10 to-primary/5 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mb-4 flex justify-center">
