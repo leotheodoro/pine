@@ -3,13 +3,14 @@ import { NextResponse } from 'next/server'
 
 export function middleware(req: NextRequest) {
   const token = req.cookies.get('token')?.value
+  const isAuthPage = req.nextUrl.pathname === '/auth/sign-in' || req.nextUrl.pathname === '/auth/sign-up'
 
-  if (!token && req.nextUrl.pathname !== '/auth/sign-in') {
+  if (!token && !isAuthPage) {
     return NextResponse.redirect(new URL('/auth/sign-in', req.url))
   }
 
-  if (token && req.nextUrl.pathname === '/auth/sign-in') {
-    return NextResponse.redirect(new URL('/', req.url))
+  if (token && isAuthPage) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
   if (token && req.nextUrl.pathname === '/') {

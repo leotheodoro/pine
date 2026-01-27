@@ -4,6 +4,7 @@ import { Geist, Geist_Mono as GeistMono } from 'next/font/google'
 
 import { Toaster } from '@/components/ui/sonner'
 import { QueryProvider } from '@/providers/query-client'
+import { ThemeProvider } from '@/providers/theme-provider'
 
 export const metadata = {
   title: 'App | Pine',
@@ -32,8 +33,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <QueryProvider>{children}</QueryProvider>
-        <Toaster />
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <QueryProvider>{children}</QueryProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )

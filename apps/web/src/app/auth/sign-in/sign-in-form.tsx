@@ -2,8 +2,10 @@
 
 import { AlertTriangle, Eye, EyeOff, Loader2 } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -16,21 +18,29 @@ import { signIn } from './actions'
 
 export function SignInForm() {
   const [showPassword, setShowPassword] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { theme } = useTheme()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const logoSrc = mounted && theme === 'light' ? '/icon-black.svg' : '/icon.svg'
 
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(signIn, () => {
     router.push('/')
   })
 
   return (
-    <div className="from-primary/10 to-primary/5 flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
+    <div className="from-primary/10 to-primary/5 flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mb-4 flex justify-center">
-            <Image src="/icon.svg" alt="Pine Logo" width={80} height={80} className="h-20 w-20" />
+            <Image src={logoSrc} alt="Pine Logo" width={80} height={80} className="h-20 w-20" />
           </div>
-          <CardTitle className="text-primary text-2xl font-bold">Pine</CardTitle>
+          <CardTitle className="text-2xl font-bold">Pine</CardTitle>
           <CardDescription>Painel Administrativo</CardDescription>
         </CardHeader>
         <CardContent>
@@ -76,7 +86,7 @@ export function SignInForm() {
               </div>
             </div>
             <Button type="submit" className="bg-primary hover:bg-primary/90 w-full">
-              {isPending ? <Loader2 className="size-4 animate-spin" /> : 'Entrar'}
+              {isPending ? <Loader2 className="size-4 animate-spin" /> : 'Sign In'}
             </Button>
 
             {success === false && message && (
@@ -88,6 +98,13 @@ export function SignInForm() {
                 </AlertDescription>
               </Alert>
             )}
+
+            <div className="text-center text-sm">
+              <span className="text-muted-foreground">Don't have an account? </span>
+              <Link href="/auth/sign-up" className="text-primary hover:underline">
+                Sign up
+              </Link>
+            </div>
           </form>
         </CardContent>
       </Card>
