@@ -40,8 +40,8 @@ export function SignInForm() {
           <div className="mb-4 flex justify-center">
             <Image src={logoSrc} alt="Pine Logo" width={80} height={80} className="h-20 w-20" />
           </div>
-          <CardTitle className="text-2xl font-bold">Pine</CardTitle>
-          <CardDescription>Painel Administrativo</CardDescription>
+          <CardTitle className="text-2xl font-bold">Pine @ Robin</CardTitle>
+          <CardDescription>Your dev hub for Robin</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
