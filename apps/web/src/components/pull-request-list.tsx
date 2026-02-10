@@ -29,11 +29,18 @@ function isApprovedByReviewer(status: string): boolean {
   return status === 'approved' || status === 'approved_with_suggestions'
 }
 
-export type PullRequestListVariant = 'to-review' | 'approved-by-me'
+function isCurrentUserAuthor(author: { name: string; email?: string }, profileUser: ProfileUser): boolean {
+  if (author.email && (author.email === profileUser.email || author.email === profileUser.bitbucket_email)) {
+    return true
+  }
+  return author.name === profileUser.name
+}
+
+export type PullRequestListVariant = 'to-review' | 'approved-by-me' | 'my-merged'
 
 export function PullRequestList({ variant = 'to-review' }: { variant?: PullRequestListVariant }) {
   const { data: profile } = useProfile()
-  const includeCompleted = variant === 'approved-by-me'
+  const includeCompleted = variant === 'approved-by-me' || variant === 'my-merged'
   const { data, isLoading } = useQuery({
     queryKey: ['pull-requests', { includeCompleted }],
     queryFn: () => listAllPullRequests({ includeCompleted }),
@@ -72,12 +79,14 @@ export function PullRequestList({ variant = 'to-review' }: { variant?: PullReque
       }
     }
 
+    if (variant === 'my-merged') {
+      return isCurrentUserAuthor(pr.author, user) && pr.status === 'merged'
+    }
+
     return false
   })
 
-  const sortedPRs = [...filteredPRs].sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  )
+  const sortedPRs = [...filteredPRs].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
 
   if (isLoading) {
     return (
@@ -88,11 +97,22 @@ export function PullRequestList({ variant = 'to-review' }: { variant?: PullReque
   }
 
   const isApprovedView = variant === 'approved-by-me'
-  const emptyMessage = isApprovedView ? 'No pull requests you approved found.' : 'No pending reviews found.'
-  const cardTitle = isApprovedView ? 'Approved pull requests' : 'Pull Requests to Review'
-  const cardDescription = isApprovedView
-    ? `You approved ${sortedPRs.length} pull request${sortedPRs.length === 1 ? '' : 's'}.`
-    : `You have ${sortedPRs.length} pending reviews.`
+  const isMyMergedView = variant === 'my-merged'
+  const emptyMessage = isMyMergedView
+    ? 'No merged pull requests you created found.'
+    : isApprovedView
+      ? 'No pull requests you approved found.'
+      : 'No pending reviews found.'
+  const cardTitle = isMyMergedView
+    ? 'My Merged pull requests'
+    : isApprovedView
+      ? 'Approved pull requests'
+      : 'Pull Requests to Review'
+  const cardDescription = isMyMergedView
+    ? `${sortedPRs.length} merged pull request${sortedPRs.length === 1 ? '' : 's'} you created.`
+    : isApprovedView
+      ? `You approved ${sortedPRs.length} pull request${sortedPRs.length === 1 ? '' : 's'}.`
+      : `You have ${sortedPRs.length} pending reviews.`
 
   return (
     <Card className="mx-auto w-full max-w-4xl">
@@ -135,7 +155,7 @@ export function PullRequestList({ variant = 'to-review' }: { variant?: PullReque
                       <span>{pr.repository.name}</span>
                       <span>•</span>
                       <span>{pr.author.name}</span>
-                      {isApprovedView && (
+                      {(isApprovedView || isMyMergedView) && (
                         <>
                           <span>•</span>
                           <span

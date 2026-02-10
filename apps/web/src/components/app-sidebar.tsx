@@ -1,6 +1,6 @@
 'use client'
 
-import { IconCircleCheck, IconDashboard, IconSettings } from '@tabler/icons-react'
+import { IconCircleCheck, IconDashboard, IconGitMerge, IconSettings } from '@tabler/icons-react'
 import * as React from 'react'
 
 import { NavMain } from '@/components/nav-main'
@@ -30,6 +30,11 @@ const data = {
       title: 'Approved pull requests',
       url: '/dashboard/approved-pull-requests',
       icon: IconCircleCheck,
+    },
+    {
+      title: 'My Merged pull requests',
+      url: '/dashboard/my-merged-pull-requests',
+      icon: IconGitMerge,
     },
   ],
   navSecondary: [
