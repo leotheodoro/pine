@@ -1,6 +1,6 @@
 'use client'
 
-import { IconDashboard, IconSettings } from '@tabler/icons-react'
+import { IconCircleCheck, IconDashboard, IconSettings } from '@tabler/icons-react'
 import * as React from 'react'
 
 import { NavMain } from '@/components/nav-main'
@@ -25,6 +25,11 @@ const data = {
       title: 'Dashboard',
       url: '/dashboard',
       icon: IconDashboard,
+    },
+    {
+      title: 'Approved pull requests',
+      url: '/dashboard/approved-pull-requests',
+      icon: IconCircleCheck,
     },
   ],
   navSecondary: [

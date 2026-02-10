@@ -17,7 +17,10 @@ export class ListAllPullRequestsService {
     private repositoriesRepository: RepositoriesRepository
   ) {}
 
-  async execute({ userId }: ListAllPullRequestsServiceRequest): Promise<ListAllPullRequestsServiceResponse> {
+  async execute({
+    userId,
+    includeCompleted = false,
+  }: ListAllPullRequestsServiceRequest): Promise<ListAllPullRequestsServiceResponse> {
     const user = await this.usersRepository.findById(userId)
 
     if (!user) {
@@ -31,6 +34,9 @@ export class ListAllPullRequestsService {
     let bitbucketCount = 0
     let azureCount = 0
 
+    const bitbucketFields =
+      'values.id,values.title,values.description,values.state,values.draft,values.author.display_name,values.author.links.avatar.href,values.participants.user.uuid,values.participants.user.display_name,values.participants.user.nickname,values.participants.role,values.participants.approved,values.participants.state,values.participants.participated_on,values.participants.user.links.avatar.href,values.created_on,values.updated_on,values.destination.branch.name,values.source.branch.name,values.links.self.href,values.links.approve.href,values.links.request_changes.href,values.links.decline.href,values.destination.repository.name'
+
     for (const repo of repositories) {
       try {
         if (repo.provider === 'bitbucket') {
@@ -39,47 +45,51 @@ export class ListAllPullRequestsService {
           }
 
           const client = createBitbucketClient(user.bitbucket_email, user.bitbucket_api_token)
+          const bitbucketStates: ('OPEN' | 'MERGED')[] = includeCompleted ? ['OPEN', 'MERGED'] : ['OPEN']
 
-          const response = await client.get(
-            `/repositories/${user.bitbucket_workspace}/${repo.identifier}/pullrequests`,
-            {
-              params: {
-                state: 'OPEN',
-                pagelen: 50,
-                sort: '-updated_on',
-                fields: `values.id,values.title,values.description,values.state,values.draft,values.author.display_name,values.author.links.avatar.href,values.participants.user.uuid,values.participants.user.display_name,values.participants.user.nickname,values.participants.role,values.participants.approved,values.participants.state,values.participants.participated_on,values.participants.user.links.avatar.href,values.created_on,values.updated_on,values.destination.branch.name,values.source.branch.name,values.links.self.href,values.links.approve.href,values.links.request_changes.href,values.links.decline.href,values.destination.repository.name`,
-              },
-            }
-          )
+          for (const state of bitbucketStates) {
+            const response = await client.get(
+              `/repositories/${user.bitbucket_workspace}/${repo.identifier}/pullrequests`,
+              {
+                params: {
+                  ...(state === 'OPEN' ? { state: 'OPEN' } : { q: 'state="MERGED"' }),
+                  pagelen: 50,
+                  sort: '-updated_on',
+                  fields: bitbucketFields,
+                },
+              }
+            )
 
-          const rawPullRequests: BitbucketRawPullRequest[] = response.data?.values ?? []
-
-          const repoPullRequests = rawPullRequests.map((pr) => this.mapBitbucketPR(pr))
-          pullRequests.push(...repoPullRequests)
-          bitbucketCount += repoPullRequests.length
+            const rawPullRequests: BitbucketRawPullRequest[] = response.data?.values ?? []
+            const repoPullRequests = rawPullRequests.map((pr) => this.mapBitbucketPR(pr))
+            pullRequests.push(...repoPullRequests)
+            bitbucketCount += repoPullRequests.length
+          }
         } else if (repo.provider === 'azure') {
           if (!user.azure_devops_org || !user.azure_devops_pat || !user.azure_devops_project) {
             throw new IntegrationCredentialsMissingError('Azure DevOps')
           }
 
           const client = createAzureDevOpsClient(user.azure_devops_org, user.azure_devops_pat)
+          const azureStatuses: ('active' | 'completed')[] = includeCompleted ? ['active', 'completed'] : ['active']
 
-          const response = await client.get(
-            `/${encodeURIComponent(user.azure_devops_project)}/_apis/git/repositories/${encodeURIComponent(repo.identifier)}/pullrequests`,
-            {
-              params: {
-                'searchCriteria.status': 'active',
-                $top: 100,
-                'api-version': '7.1',
-              },
-            }
-          )
+          for (const status of azureStatuses) {
+            const response = await client.get(
+              `/${encodeURIComponent(user.azure_devops_project)}/_apis/git/repositories/${encodeURIComponent(repo.identifier)}/pullrequests`,
+              {
+                params: {
+                  'searchCriteria.status': status,
+                  $top: 100,
+                  'api-version': '7.1',
+                },
+              }
+            )
 
-          const rawPullRequests: AzureRawPullRequest[] = response.data?.value ?? []
-
-          const repoPullRequests = rawPullRequests.map((pr) => this.mapAzurePR(pr))
-          pullRequests.push(...repoPullRequests)
-          azureCount += repoPullRequests.length
+            const rawPullRequests: AzureRawPullRequest[] = response.data?.value ?? []
+            const repoPullRequests = rawPullRequests.map((pr) => this.mapAzurePR(pr))
+            pullRequests.push(...repoPullRequests)
+            azureCount += repoPullRequests.length
+          }
         }
       } catch (error) {
         errors.push({

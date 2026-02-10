@@ -9,51 +9,75 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useProfile } from '@/hooks/use-profile'
 import { listAllPullRequests } from '@/http/pull-requests/list-all-pull-requests'
 
-export function PullRequestList() {
+type ProfileUser = {
+  name: string
+  email?: string | null
+  bitbucket_email?: string | null
+  bitbucket_workspace?: string | null
+  azure_devops_org?: string | null
+  azure_devops_project?: string | null
+}
+
+function isCurrentUserReviewer(reviewer: { name: string; email?: string }, profileUser: ProfileUser): boolean {
+  if (reviewer.email && (reviewer.email === profileUser.email || reviewer.email === profileUser.bitbucket_email)) {
+    return true
+  }
+  return reviewer.name === profileUser.name
+}
+
+function isApprovedByReviewer(status: string): boolean {
+  return status === 'approved' || status === 'approved_with_suggestions'
+}
+
+export type PullRequestListVariant = 'to-review' | 'approved-by-me'
+
+export function PullRequestList({ variant = 'to-review' }: { variant?: PullRequestListVariant }) {
   const { data: profile } = useProfile()
+  const includeCompleted = variant === 'approved-by-me'
   const { data, isLoading } = useQuery({
-    queryKey: ['pull-requests'],
-    queryFn: listAllPullRequests,
+    queryKey: ['pull-requests', { includeCompleted }],
+    queryFn: () => listAllPullRequests({ includeCompleted }),
   })
 
-  // Filter PRs where the user is a reviewer
-  const prsToReview =
-    data?.pullRequests.filter((pr) => {
-      if (!profile?.user) return false
+  const filteredPRs = (data?.pullRequests ?? []).filter((pr) => {
+    if (!profile?.user) return false
+    const user = profile.user as ProfileUser
 
-      if (pr.author.email === profile.user.email || pr.author.email === profile.user.bitbucket_email) {
+    if (variant === 'to-review') {
+      if (pr.author.email === user.email || pr.author.email === user.bitbucket_email) {
         return false
       }
-
-      // Azure DevOps uses email (uniqueName)
       if (pr.provider === 'azure') {
         return pr.reviewers.some(
-          (reviewer) =>
-            (reviewer.email === profile.user.email || reviewer.email === profile.user.bitbucket_email) &&
-            reviewer.status !== 'approved' // Fallback if they share email
+          (reviewer) => isCurrentUserReviewer(reviewer, user) && !isApprovedByReviewer(reviewer.status)
         )
       }
-
-      // Bitbucket - match display name if email is missing or match email if present
-      // Note: Bitbucket API privacy settings might hide email.
       if (pr.provider === 'bitbucket') {
-        return pr.reviewers.some((reviewer) => {
-          // If we have an email match, great
-          if (
-            reviewer.email &&
-            (reviewer.email === profile.user.email || reviewer.email === profile.user.bitbucket_email) &&
-            reviewer.status !== 'approved'
-          ) {
-            return true
-          }
-          // Fallback to name match - risky but better than nothing for now
-          // A more robust way would be to fetch current user UUID from BB
-          return reviewer.name === profile.user.name
-        })
+        return pr.reviewers.some(
+          (reviewer) => isCurrentUserReviewer(reviewer, user) && !isApprovedByReviewer(reviewer.status)
+        )
       }
+    }
 
-      return false
-    }) ?? []
+    if (variant === 'approved-by-me') {
+      if (pr.provider === 'azure') {
+        return pr.reviewers.some(
+          (reviewer) => isCurrentUserReviewer(reviewer, user) && isApprovedByReviewer(reviewer.status)
+        )
+      }
+      if (pr.provider === 'bitbucket') {
+        return pr.reviewers.some(
+          (reviewer) => isCurrentUserReviewer(reviewer, user) && isApprovedByReviewer(reviewer.status)
+        )
+      }
+    }
+
+    return false
+  })
+
+  const sortedPRs = [...filteredPRs].sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  )
 
   if (isLoading) {
     return (
@@ -63,22 +87,29 @@ export function PullRequestList() {
     )
   }
 
+  const isApprovedView = variant === 'approved-by-me'
+  const emptyMessage = isApprovedView ? 'No pull requests you approved found.' : 'No pending reviews found.'
+  const cardTitle = isApprovedView ? 'Approved pull requests' : 'Pull Requests to Review'
+  const cardDescription = isApprovedView
+    ? `You approved ${sortedPRs.length} pull request${sortedPRs.length === 1 ? '' : 's'}.`
+    : `You have ${sortedPRs.length} pending reviews.`
+
   return (
     <Card className="mx-auto w-full max-w-4xl">
       <CardHeader>
-        <CardTitle>Pull Requests to Review</CardTitle>
-        <CardDescription>You have {prsToReview.length} pending reviews.</CardDescription>
+        <CardTitle>{cardTitle}</CardTitle>
+        <CardDescription>{cardDescription}</CardDescription>
       </CardHeader>
       <CardContent>
-        {prsToReview.length === 0 ? (
+        {sortedPRs.length === 0 ? (
           <div className="flex h-32 flex-col items-center justify-center gap-2 text-muted-foreground">
             <GitPullRequest className="size-8 opacity-50" />
-            <p>No pending reviews found.</p>
+            <p>{emptyMessage}</p>
           </div>
         ) : (
           <div className="max-h-[500px] overflow-y-auto pr-2">
             <div className="flex flex-col gap-2">
-              {prsToReview.map((pr) => (
+              {sortedPRs.map((pr) => (
                 <Link
                   key={`${pr.provider}-${pr.id}`}
                   href={
@@ -104,6 +135,22 @@ export function PullRequestList() {
                       <span>{pr.repository.name}</span>
                       <span>•</span>
                       <span>{pr.author.name}</span>
+                      {isApprovedView && (
+                        <>
+                          <span>•</span>
+                          <span
+                            className={
+                              pr.status === 'merged'
+                                ? 'font-medium text-green-600 dark:text-green-400'
+                                : pr.status === 'open'
+                                  ? 'text-amber-600 dark:text-amber-400'
+                                  : undefined
+                            }
+                          >
+                            {pr.status === 'merged' ? 'Merged' : pr.status === 'open' ? 'Open' : pr.status}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </Link>

@@ -44,8 +44,11 @@ interface ListAllPullRequestsResponse {
   }[]
 }
 
-export async function listAllPullRequests() {
-  const result = await api.get('integrations/pull-requests').json<ListAllPullRequestsResponse>()
+export async function listAllPullRequests(options?: { includeCompleted?: boolean }) {
+  const searchParams =
+    options?.includeCompleted === true ? new URLSearchParams({ includeCompleted: 'true' }) : undefined
+  const url = searchParams ? `integrations/pull-requests?${searchParams}` : 'integrations/pull-requests'
+  const result = await api.get(url).json<ListAllPullRequestsResponse>()
 
   return result
 }

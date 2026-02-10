@@ -35,6 +35,8 @@ export interface PullRequest {
 
 export interface ListAllPullRequestsServiceRequest {
   userId: string
+  /** When true, also fetch merged/completed PRs (for "approved by me" view). */
+  includeCompleted?: boolean
 }
 
 export interface ListAllPullRequestsServiceResponse {
