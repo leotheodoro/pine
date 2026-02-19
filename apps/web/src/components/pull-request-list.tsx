@@ -6,12 +6,15 @@ import Link from 'next/link'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ReviewerAvatars } from '@/components/reviewer-avatars'
+import { UserReviewStatusBadge } from '@/components/user-review-status-badge'
 import { useProfile } from '@/hooks/use-profile'
 import { listAllPullRequests } from '@/http/pull-requests/list-all-pull-requests'
 
 type ProfileUser = {
   name: string
   email?: string | null
+  avatar_url?: string | null
   bitbucket_email?: string | null
   bitbucket_workspace?: string | null
   azure_devops_org?: string | null
@@ -138,16 +141,21 @@ export function PullRequestList({ variant = 'to-review' }: { variant?: PullReque
                       : `https://bitbucket.org/${profile?.user.bitbucket_workspace}/${pr.repository.name.toLowerCase()}/pull-requests/${pr.id}` // https://bitbucket.org/recruitrobin/atsgatewayapi/pull-requests/310
                   }
                   target="_blank"
-                  className="flex items-start gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                  className="relative flex items-start gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
                 >
+                  {variant === 'to-review' && profile?.user && (
+                    <div className="absolute top-3 right-3">
+                      <UserReviewStatusBadge reviewers={pr.reviewers} currentUser={profile.user as ProfileUser} />
+                    </div>
+                  )}
                   <Avatar className="mt-1 size-8">
                     <AvatarImage src={pr.author.avatarUrl} alt={pr.author.name} />
                     <AvatarFallback>{pr.author.name.substring(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className="flex flex-1 flex-col gap-1">
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
                       <span className="font-medium">{pr.title}</span>
-                      <ExternalLink className="size-4 shrink-0 text-muted-foreground opacity-50" />
+                      <ExternalLink className="size-3.5 shrink-0 text-muted-foreground opacity-50" />
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="capitalize">{pr.provider}</span>
@@ -172,6 +180,9 @@ export function PullRequestList({ variant = 'to-review' }: { variant?: PullReque
                         </>
                       )}
                     </div>
+                    {variant === 'to-review' && profile?.user && (
+                      <ReviewerAvatars reviewers={pr.reviewers} currentUser={profile.user as ProfileUser} />
+                    )}
                   </div>
                 </Link>
               ))}
