@@ -54,6 +54,8 @@ export async function signUp(data: FormData) {
     cookieStore.set('token', token, {
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
     })
   } catch (error) {
     if (error instanceof HTTPError) {
