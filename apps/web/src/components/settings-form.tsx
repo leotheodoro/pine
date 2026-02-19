@@ -5,14 +5,13 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
-import { updateProfileAction } from '@/app/dashboard/settings/actions'
+import type { UpdateProfileResult } from '@/app/dashboard/settings/actions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useFormState } from '@/hooks/use-form-state'
 import { useProfile } from '@/hooks/use-profile'
 
 interface Repository {
@@ -32,15 +31,52 @@ interface UserProfile {
   repositories?: Repository[]
 }
 
+const initialFormState: UpdateProfileResult = {
+  success: false,
+  message: null,
+  errors: null,
+}
+
 export function SettingsForm() {
   const { data: profile, isLoading } = useProfile()
   const router = useRouter()
   const [repositories, setRepositories] = useState<Repository[]>([])
+  const [formState, setFormState] = useState<UpdateProfileResult>(initialFormState)
+  const [isPending, setIsPending] = useState(false)
 
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(updateProfileAction, () => {
-    toast.success('Settings updated successfully')
-    router.refresh()
-  })
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const form = event.currentTarget
+    const data = new FormData(form)
+    setIsPending(true)
+    setFormState(initialFormState)
+    try {
+      const res = await fetch('/api/settings/update', {
+        method: 'POST',
+        body: data,
+        credentials: 'include',
+      })
+      const result: UpdateProfileResult = await res.json()
+      setFormState(result)
+      if (result.success) {
+        toast.success('Settings updated successfully')
+        router.refresh()
+      }
+      if (res.status === 401) {
+        router.push('/auth/sign-in')
+      }
+    } catch {
+      setFormState({
+        success: false,
+        message: 'Unexpected error, try again in a few minutes',
+        errors: null,
+      })
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  const { success, message, errors } = formState
 
   useEffect(() => {
     if (success === false && message) {
