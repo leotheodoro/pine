@@ -26,9 +26,23 @@ model User {
   azure_devops_pat     String?
   azure_devops_project String?
 
-  repositories Repository[]
+  repositories   Repository[]
+  journalEntries JournalEntry[]
 
   @@map("users")
+}
+
+model JournalEntry {
+  id        String   @id @default(uuid())
+  user_id   String
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  content   String   @default("")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([user_id, date])
+  @@map("journal_entries")
 }
 
 model Repository {
@@ -41,3 +55,4 @@ model Repository {
 
   @@map("repositories")
 }
+
