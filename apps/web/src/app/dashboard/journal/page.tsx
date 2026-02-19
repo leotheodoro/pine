@@ -1,25 +1,17 @@
 'use client'
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format, parseISO } from 'date-fns'
 import { Edit2, Loader2, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createJournalEntry } from '@/http/journal/create-journal-entry'
 import { deleteJournalEntry } from '@/http/journal/delete-journal-entry'
-import {
-  listJournalEntries,
-  type JournalEntryItem,
-} from '@/http/journal/list-journal-entries'
+import { type JournalEntryItem, listJournalEntries } from '@/http/journal/list-journal-entries'
 import { updateJournalEntry } from '@/http/journal/update-journal-entry'
 
 const PAGE_SIZE = 20
@@ -119,13 +111,10 @@ export default function JournalPage() {
     [quickAddValue, createMutation]
   )
 
-  const handleEdit = useCallback(
-    (entry: JournalEntryItem) => {
-      setEditingEntry(entry)
-      setEditContent(entry.content)
-    },
-    []
-  )
+  const handleEdit = useCallback((entry: JournalEntryItem) => {
+    setEditingEntry(entry)
+    setEditContent(entry.content)
+  }, [])
 
   const handleUpdateSubmit = useCallback(() => {
     if (!editingEntry) return
@@ -157,11 +146,7 @@ export default function JournalPage() {
             className="flex-1"
           />
           <Button type="submit" disabled={createMutation.isPending || !quickAddValue.trim()}>
-            {createMutation.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              'Add'
-            )}
+            {createMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : 'Add'}
           </Button>
         </form>
 
@@ -235,7 +220,11 @@ export default function JournalPage() {
                     className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 </div>
-                <Button onClick={handleUpdateSubmit} disabled={updateMutation.isPending || !editContent.trim()} className="w-full">
+                <Button
+                  onClick={handleUpdateSubmit}
+                  disabled={updateMutation.isPending || !editContent.trim()}
+                  className="w-full"
+                >
                   {updateMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 size-4 animate-spin" />
